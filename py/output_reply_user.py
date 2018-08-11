@@ -7,32 +7,30 @@ from requests_oauthlib import OAuth1Session
 import json
 import csv
 
-### Constants                                                                                                                                                     
-oath_key_dict = {
-    "consumer_key": "D05pRMHJrHoP4Vy2YXsCxa0r5",
-    "consumer_secret": "XF0fp4MBnKncVFIkEIQXwFDSC9h5xAVtaHlKV1wugxEqaIEmr5",
-    "access_token": "945419135697108992-UocgJBz2zeEC1onPwC5PQzUW6LujigD",
-    "access_token_secret": "ejgD6xj4svxAZuiDA0TneBO9uKReXX4rCtoBow08VO7Pw"
-}
-
-
 ### Functions                                                                                                                                                     
 def main():
     print ('consumer_key: ')
-    consumer_key = raw_input('>>>  ')
+    consumer_key = input('>>>  ')
     print ('consumer_secret: ')
-    consumer_secret = raw_input('>>>  ')
+    consumer_secret = input('>>>  ')
     print ('access_token: ')
-    access_token = raw_input('>>>  ')
+    access_token = input('>>>  ')
     print ('access_token_secret: ')
-    access_token_secret = raw_input('>>>  ')
+    access_token_secret = input('>>>  ')
+
+    oath_key_dict = {
+        "consumer_key": consumer_key,
+        "consumer_secret": consumer_secret,
+        "access_token": access_token,
+        "access_token_secret": access_token_secret
+    }
 
     print ('target tweet author: ')
-    author = raw_input('>>> @')
+    author = input('>>> @')
     print ('target tweet id: ')
-    id_str = raw_input('>>>  ')
+    id_str = input('>>>  ')
     
-    tweets = tweet_search(f'@{author}', oath_key_dict)
+    tweets = tweet_search(f'@{author}', oath_key_dict, id_str)
     f = open('output.csv', 'wb')
     writer = csv.writer(f, lineterminator=',')
     for tweet in tweets["statuses"]:
@@ -52,14 +50,14 @@ def main():
 
 def create_oath_session(oath_key_dict):
     oath = OAuth1Session(
-    consumer_key,
-    consumer_secret,
-    access_token,
-    access_token_secret
+    oath_key_dict["consumer_key"],
+    oath_key_dict["consumer_secret"],
+    oath_key_dict["access_token"],
+    oath_key_dict["access_token_secret"]
     )
     return oath
 
-def tweet_search(search_word, oath_key_dict):
+def tweet_search(search_word, oath_key_dict, id_str):
     url = "https://api.twitter.com/1.1/search/tweets.json?"
     params = {
         "q": search_word,
