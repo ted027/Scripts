@@ -2,19 +2,21 @@ import os
 import shutil
 import glob
 
-def find_all_files(directory):
+def find_cache_dirs(directory):
+    ls = []
     for root, dirs, files in os.walk(directory):
-        yield root
-        for file in files:
-            yield os.path.join(root, file)
+        for dr in dirs:
+            print(f'dir: {dr}')
+            if '__pycache__' in dr:
+                ls.extend(os.path.join(root, dr))
+            elif '.pytest_cache' in dr:
+                ls.extend(os.path.join(root, dr))
+    return ls
 
-file_list = glob.glob('./*__pycache__*') + glob.glob('./*.pytest_cache*')
-print(f'file_list: {file_list}')
-
-dir_list = list(set([os.path.dirname(fil) for fil in file_list]))
+dir_list = find_cache_dirs('.')
 print(f'dir_list: {dir_list}')
+ 
 
-for dr in dir_list:
-    print(f'remopve {dr}')
-    # shutil.rmtree(dr, ignore_errors=True)
-    # delete
+# for dr in dir_list:
+#     print(f'remopve {dr}')
+#     # delete
