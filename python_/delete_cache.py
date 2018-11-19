@@ -15,7 +15,7 @@ def find_cache_dirs(directory):
 
 dir_list = find_cache_dirs('.')
 print(f'dir_list: {dir_list}')
- 
+
 
 # for dr in dir_list:
 #     print(f'remopve {dr}')
