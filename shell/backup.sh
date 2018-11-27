@@ -12,4 +12,7 @@ for file in `find input -maxdepth 1 -type f`; do
         mkdir -p target_dir
     fi
     cp -n $file $output$YYYYMM$MMDD
+    echo "copy ${file##*/} to ${target_dir}/"
 done
+
+read -p "Press any key to finish."
