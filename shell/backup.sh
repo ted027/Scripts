@@ -11,5 +11,5 @@ for file in `find input -maxdepth 1 -type f`; do
     if [ ! -d target_dir ]; then
         mkdir -p target_dir
     fi
-    cp -i $file $output$YYYYMM$MMDD
+    cp -n $file $output$YYYYMM$MMDD
 done
