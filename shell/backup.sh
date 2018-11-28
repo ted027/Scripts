@@ -3,6 +3,14 @@
 input="/Volumes/*iphone_name*/*画像フォルダ名*"
 output="/Volumes/*hdd_name*/*フォルダ名*"
 
+if [ ! -d input ]; then
+    read -p "Cannot detect image device."    
+    exit
+elif [ ! -d output ]; then
+    read -p "Cannot detect backup device."
+    exit
+fi
+
 for file in `find input -maxdepth 1 -type f`; do
     YYYYMM=`date +%Y%m -r $file`
     MMDD=`date +%m%d -r $file`
