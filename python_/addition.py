@@ -44,6 +44,7 @@ result = {}
 for team in teams:
     result[team] = thought
 
+
 def trade():
     for year in [str(YEAR-3), str(YEAR-2), str(YEAR-1), str(YEAR)]:
         url = f"http://npb.jp/announcement/{year}/pn_traded.html"
