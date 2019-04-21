@@ -20,6 +20,10 @@ thought = {
         "獲得方針": "",
         "人数": ""
     },
+    "ポスティング": {
+        "ポスティング": "",
+        "獲得方針": ""
+    },
     "自由契約選手獲得": {
         "獲得方針": ""
     }
@@ -45,7 +49,7 @@ for team in teams:
     result[team] = thought
 
 
-def conv_team_notate(team):
+def __conv_team_notate(team):
     return team.replace("広島東洋", "広島") \
                 .replace("東京ヤクルト", "ヤクルト") \
                 .replace("巨人", "読売") \
@@ -58,26 +62,39 @@ def conv_team_notate(team):
                 .replace("千葉ロッテ", "ロッテ").replace("東北楽天", "楽天")
 
 
-def _create_team_dic(teams, default):
+def __create_team_dic(teams, default):
     team_dic = {}
     for team in teams:
         team_dic[team] = default
     return team_dic
 
-def _sort_team_dic(team_dic):
+def __sort_team_dic(team_dic):
     sorted_tuple_list = sorted(team_dic.items(), key=lambda x: -x[1])
     print(sorted_tuple_list)
+    print("\n")
     # if team3 == team4
     leader = [team_tuple[0] for team_tuple in sorted_tuple_list[:3]]
     follower = [team_tuple[0] for team_tuple in sorted_tuple_list[9:]]
     return leader,follower
 
-def _update_result(result, leader, lead_word, follower, follow_word):
-    # continue
-    pass
+def __update_result(result, update_items, leader, follower):
+    """
+    Parameters
+    ----------
+    update_items : list
+        thoughtの親key, thoughtの小key, leaderのvalue, followerのvalue
+        ex. ["トレード", "頻度", "積極的", "消極的"]
+    """
+    for lead_team in leader:
+        result[lead_team][update_items[0]][update_items[1]] = update_items[2]
+        print(f"result[{lead_team}][{update_items[0]}][{update_items[1]}] = {update_items[2]}")
+    for follow_team in follower:
+        result[follow_team][update_items[0]][update_items[1]] = update_items[3]
+        print(f"result[{follow_team}][{update_items[0]}][{update_items[1]}] = {update_items[3]}")
+    return result
 
-def trade_dic(teams):
-    team_dic = _create_team_dic(teams, 0)
+def _trade_dic(teams):
+    team_dic = __create_team_dic(teams, 0)
     for year in [YEAR-3, YEAR-2, YEAR-1, YEAR]:
         url = f"http://npb.jp/announcement/{year}/pn_traded.html"
 
@@ -91,13 +108,17 @@ def trade_dic(teams):
                 continue
             team_tds = table.find_all(class_="trteam")
             for team_td in team_tds:
-                team_dic[conv_team_notate(team_td.text)] += 1
+                team_dic[__conv_team_notate(team_td.text)] += 1
     return team_dic
 
 def trade(teams, result):
-    team_dic = trade_dic(teams)
-    leader,follower = _sort_team_dic(team_dic)
+    team_dic = _trade_dic(teams)
+    leader,follower = __sort_team_dic(team_dic)
+    update_items = ["トレード", "頻度", "積極的", "消極的"]
+    return __update_result(result, update_items, leader, follower)
 
+result = trade(teams, result)
+print(result)
 
 def draft():
     YY = YEAR & 1000
