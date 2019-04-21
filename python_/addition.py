@@ -1,3 +1,4 @@
+import copy
 import requests
 import bs4
 import json
@@ -6,26 +7,26 @@ YEAR = 2019
 
 thought = {
     "トレード": {
-        "頻度": ""
+        "頻度": "おまかせ"
     },
     "新外国人獲得": {
-        "頻度": "",
-        "獲得方針": ""
+        "頻度": "おまかせ",
+        "獲得方針": "おまかせ"
     },
     "ドラフト": {
-        "獲得方針": ""
+        "獲得方針": "おまかせ"
     },
     "FA交渉": {
-        "他チームの選手に対して": "",
-        "獲得方針": "",
-        "人数": ""
+        "他チームの選手に対して": "おまかせ",
+        "獲得方針": "おまかせ",
+        "人数": "おまかせ"
     },
     "ポスティング": {
-        "ポスティング": "",
-        "獲得方針": ""
+        "承認": "おまかせ",
+        "獲得方針": "おまかせ"
     },
     "自由契約選手獲得": {
-        "獲得方針": ""
+        "獲得方針": "おまかせ"
     }
 }
 
@@ -44,9 +45,11 @@ teams = [
     "楽天"
 ]
 
+thought_list = []
+
 result = {}
 for team in teams:
-    result[team] = thought
+    result[team] = copy.deepcopy(thought)
 
 
 def __conv_team_notate(team):
@@ -59,7 +62,8 @@ def __conv_team_notate(team):
                 .replace("埼玉西武", "西武") \
                 .replace("福岡ソフトバンク", "ソフトバンク") \
                 .replace("北海道日本ハム", "日本ハム") \
-                .replace("千葉ロッテ", "ロッテ").replace("東北楽天", "楽天")
+                .replace("千葉ロッテ", "ロッテ") \
+                .replace("東北楽天", "楽天")
 
 
 def __create_team_dic(teams, default):
@@ -68,13 +72,25 @@ def __create_team_dic(teams, default):
         team_dic[team] = default
     return team_dic
 
+def ___chage_typical_teams_num(sorted_tuple_list):
+    lead_num = follow_num = 3
+    while 0 < lead_num:
+        if sorted_tuple_list[lead_num-1][1] != sorted_tuple_list[lead_num][1]:
+            break
+        lead_num -= 1
+    while 0 < follow_num:
+        if sorted_tuple_list[12-follow_num][1] != sorted_tuple_list[12-follow_num-1][1]:
+            break
+        follow_num -= 1
+    return lead_num,follow_num
+        
+
 def __sort_team_dic(team_dic):
     sorted_tuple_list = sorted(team_dic.items(), key=lambda x: -x[1])
-    print(sorted_tuple_list)
-    print("\n")
-    # if team3 == team4
-    leader = [team_tuple[0] for team_tuple in sorted_tuple_list[:3]]
-    follower = [team_tuple[0] for team_tuple in sorted_tuple_list[9:]]
+    print(f"  {sorted_tuple_list}\n")
+    lead_num,follow_num = ___chage_typical_teams_num(sorted_tuple_list)
+    leader = [team_tuple[0] for team_tuple in sorted_tuple_list[:lead_num]]
+    follower = [team_tuple[0] for team_tuple in sorted_tuple_list[12-follow_num:]]
     return leader,follower
 
 def __update_result(result, update_items, leader, follower):
@@ -87,10 +103,8 @@ def __update_result(result, update_items, leader, follower):
     """
     for lead_team in leader:
         result[lead_team][update_items[0]][update_items[1]] = update_items[2]
-        print(f"result[{lead_team}][{update_items[0]}][{update_items[1]}] = {update_items[2]}")
     for follow_team in follower:
         result[follow_team][update_items[0]][update_items[1]] = update_items[3]
-        print(f"result[{follow_team}][{update_items[0]}][{update_items[1]}] = {update_items[3]}")
     return result
 
 def _trade_dic(teams):
@@ -113,6 +127,7 @@ def _trade_dic(teams):
 
 def trade(teams, result):
     team_dic = _trade_dic(teams)
+    print("trade:  ")
     leader,follower = __sort_team_dic(team_dic)
     update_items = ["トレード", "頻度", "積極的", "消極的"]
     return __update_result(result, update_items, leader, follower)
@@ -120,7 +135,7 @@ def trade(teams, result):
 result = trade(teams, result)
 print(result)
 
-def draft():
+def _draft_dic():
     YY = YEAR & 1000
     for year in [YY-2, YY-1]:
         url = f"https://www.sanspo.com/baseball/draft/{year}/top.html"
