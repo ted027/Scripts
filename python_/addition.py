@@ -2,6 +2,7 @@ import copy
 import requests
 import bs4
 import json
+from pprint import pprint
 
 YEAR = 2019
 
@@ -63,28 +64,35 @@ def __create_team_dic(teams, default):
     return team_dic
 
 
-def ___chage_typical_teams_num(sorted_tuple_list):
+def ___chage_typical_teams_num(cutted_tuple_list):
+    number_of_teams = len(cutted_tuple_list)
+    print(number_of_teams)
     lead_num = follow_num = 3
     while 0 < lead_num:
-        if sorted_tuple_list[lead_num -
-                             1][1] != sorted_tuple_list[lead_num][1]:
+        if cutted_tuple_list[lead_num -
+                             1][1] != cutted_tuple_list[lead_num][1]:
             break
         lead_num -= 1
     while 0 < follow_num:
-        if sorted_tuple_list[12 - follow_num][1] != sorted_tuple_list[
-                12 - follow_num - 1][1]:
+        if cutted_tuple_list[number_of_teams - follow_num][1] != cutted_tuple_list[
+                number_of_teams - follow_num - 1][1]:
             break
         follow_num -= 1
     return lead_num, follow_num
 
 
+def ___ignore_no_data(sorted_tuple_list):
+    return [tupl for tupl in sorted_tuple_list if tupl[1] != -1]
+
+
 def __sort_team_dic(team_dic):
     sorted_tuple_list = sorted(team_dic.items(), key=lambda x: -x[1])
     print(f"  {sorted_tuple_list}\n")
-    lead_num, follow_num = ___chage_typical_teams_num(sorted_tuple_list)
-    leader = [team_tuple[0] for team_tuple in sorted_tuple_list[:lead_num]]
+    cutted_tuple_list = ___ignore_no_data(sorted_tuple_list)
+    lead_num, follow_num = ___chage_typical_teams_num(cutted_tuple_list)
+    leader = [team_tuple[0] for team_tuple in cutted_tuple_list[:lead_num]]
     follower = [
-        team_tuple[0] for team_tuple in sorted_tuple_list[12 - follow_num:]
+        team_tuple[0] for team_tuple in cutted_tuple_list[12 - follow_num:]
     ]
     return leader, follower
 
@@ -144,7 +152,10 @@ def _foreign_dic(teams):
                 num_of_people_dic[team] += 1
                 age_dic[team] += year - foreign["Born"]
     for team in teams:
-        age_dic[team] = age_dic[team] * 1.0 / num_of_people_dic[team]
+        if not num_of_people_dic[team]:
+            age_dic[team] = -1
+        else:
+            age_dic[team] = age_dic[team] * 1.0 / num_of_people_dic[team]
     return num_of_people_dic, age_dic
 
 
@@ -185,7 +196,10 @@ def _draft_dic(teams):
             if not 16 < age < 45: raise BaseException()
             age_dic[team_pointer] += age
     for team in teams:
-        age_dic[team] = age_dic[team] * 1.0 / num_of_people_dic[team]
+        if not num_of_people_dic[team]:
+            age_dic[team] = -1
+        else:
+            age_dic[team] = age_dic[team] * 1.0 / num_of_people_dic[team]
     return age_dic
 
 
@@ -205,24 +219,31 @@ def _free_agent_dic(teams):
     age_dic = __create_team_dic(teams, 0)
     payment_dic = __create_team_dic(teams, 0)
     for year in [YEAR - 3, YEAR - 2, YEAR - 1]:
-        for player in fa_dic.items():
-            for team in player["Team"]:
+        for dic in fa_dic[str(year)].values():
+            for team in dic["Team"]:
                 num_of_people_dic[team] += 1
-                age_dic[team] += year - player["Born"]
-                payment_dic += player["Payment"]
+                age_dic[team] += year - dic["Born"]
+                payment_dic[team] += dic["Payment"]
     for team in teams:
-        age_dic[team] = age_dic[team] * 1.0 / num_of_people_dic[team]
-        payment_dic[team] = payment_dic[team] * 1.0 / num_of_people_dic[team]
+        if not num_of_people_dic[team]:
+            age_dic[team] = -1
+            payment_dic[team] = -1
+        else:
+            age_dic[team] = age_dic[team] * 1.0 / num_of_people_dic[team]
+            payment_dic[team] = payment_dic[team] * 1.0 / num_of_people_dic[team]
     return num_of_people_dic, age_dic, payment_dic
+    
 
 
 def free_agent(teams, result):
+    num_of_people_dic = __create_team_dic(teams, 0)
+    age_dic = __create_team_dic(teams, 0)
     num_of_people_dic, age_dic, payment_dic = _free_agent_dic(teams)
     print("free_agent_player: ")
     for k, v in num_of_people_dic.items():
-        if v / 3 > 2:
+        if v / 3 > 1.5:
             result[k]["FA交渉"]["人数"] = "複数人"
-        elif v / 3 < 1:
+        elif v / 3 < 0.5:
             result[k]["FA交渉"]["人数"] = "一人"
     num_leader, num_follower = __sort_team_dic(num_of_people_dic)
     num_update_items = ["FA交渉", "他チームの選手に対して", "積極的", "消極的"]
@@ -237,18 +258,14 @@ def free_agent(teams, result):
     return __update_result(result, pay_update_items, pay_leader, pay_follower)
 
 
-result = trade(teams, result)
-result = draft(teams, result)
-result = foreign(teams, result)
-print(result)
-
-
 def _returned_dic(teams):
     f = open("../other/returned_player.json", 'r')
     returned_dic = json.load(f)
 
-    team_dic = {}
-    return team_dic
+    num_of_people_dic = __create_team_dic(teams, 0)
+    for team in returned_dic.values():
+        num_of_people_dic[team] += 1
+    return num_of_people_dic
 
 
 def returned(teams, result):
@@ -272,7 +289,10 @@ def _unregistered_dic(teams):
                 num_of_people_dic[team] += 1
                 age_dic[team] += year - unregistered["Born"]
     for team in teams:
-        age_dic[team] = age_dic[team] * 1.0 / num_of_people_dic[team]
+        if not num_of_people_dic[team]:
+            age_dic[team] = -1
+        else:
+            age_dic[team] = age_dic[team] * 1.0 / num_of_people_dic[team]
     return age_dic
 
 
@@ -282,3 +302,11 @@ def unregistered(teams, result):
     leader, follower = __sort_team_dic(age_dic)
     update_items = ["自由契約選手獲得", "獲得方針", "経験重視", "のびしろ重視"]
     return __update_result(result, update_items, leader, follower)
+
+result = trade(teams, result)
+result = foreign(teams, result)
+result = draft(teams, result)
+result = free_agent(teams, result)
+result = returned(teams, result)
+result = unregistered(teams, result)
+pprint(result)
