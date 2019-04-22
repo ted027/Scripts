@@ -16,8 +16,8 @@
 - ドラフト
     - 獲得方針（即戦力重視・将来性重視・一芸重視）
       - ★直近二年の獲得選手の平均年齢、上位3と下位3
-        - https://www.sanspo.com/baseball/draft/18/top.html
-        - https://www.sanspo.com/baseball/draft/17/top.html
+        - https://www.sanspo.com/baseball/draft/18/draft_table.html
+        - https://www.sanspo.com/baseball/draft/17/draft_table.html
       - 一芸はデータで出しづらいので「おまかせ」
     - 重視特徴（球速重コントロール・スタミナ・変化球・打撃・走力・守備）
       - データで出しづらいので「おまかせ」
