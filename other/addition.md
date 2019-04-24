@@ -49,3 +49,15 @@
           - http://npb.jp/announcement/2016/pn_released.html
           - http://npb.jp/announcement/2017/pn_released.html
           - http://npb.jp/announcement/2018/pn_released.html
+
+ama
+1414800
+
+rak
+1414727
+
+yah
+1418766
+
+7n
+1414728
