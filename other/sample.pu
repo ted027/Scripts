@@ -30,16 +30,16 @@ AWSCLOUD(aws) {
 USERS(users,Users)
 CLIENT(client)
 
-users -r-> client
-client -r-> route53
-client -r-> cloudfront
-cloudfront --> api
+users -> client
+client -> route53
+client -> cloudfront
+cloudfront -> api
 
-api -r-> lambda
-lambda -r-> web_bucket
-lambda -r-> table
+api -> lambda
+lambda -> web_bucket
+lambda -> table
 
-web_bucket .r.> log_bucket
+web_bucket .> log_bucket
 
 route53 .[hidden]. cloudfront
 table .[hidden]. web_bucket
