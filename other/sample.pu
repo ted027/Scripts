@@ -1,0 +1,47 @@
+@startuml
+
+!define AWSPUML https://raw.githubusercontent.com/milo-minderbinder/AWS-PlantUML/release/18-2-22/dist
+!includeurl AWSPUML/common.puml
+!includeurl AWSPUML/ApplicationServices/AmazonAPIGateway/AmazonAPIGateway.puml
+!includeurl AWSPUML/Compute/AWSLambda/LambdaFunction/LambdaFunction.puml
+!includeurl AWSPUML/Database/AmazonDynamoDB/table/table.puml
+!includeurl AWSPUML/General/AWScloud/AWScloud.puml
+!includeurl AWSPUML/General/client/client.puml
+!includeurl AWSPUML/General/users/users.puml
+!includeurl AWSPUML/NetworkingContentDelivery/AmazonCloudFront/AmazonCloudFront.puml
+!includeurl AWSPUML/NetworkingContentDelivery/AmazonRoute53/AmazonRoute53.puml
+!includeurl AWSPUML/NetworkingContentDelivery/AmazonVPC/AmazonVPC.puml
+!includeurl AWSPUML/SecurityIdentityCompliance/IAM/role/role.puml
+!includeurl AWSPUML/Storage/AmazonS3/bucket/bucket.puml
+
+AWSCLOUD(aws) {
+    AMAZONROUTE53(route53)
+    AMAZONCLOUDFRONT(cloudfront)
+
+    AMAZONVPC(vpc) {
+        LAMBDAFUNCTION(lambda,RestFunction)
+        AMAZONAPIGATEWAY(api,RestApi)
+        BUCKET(web_bucket,web)
+        BUCKET(log_bucket,log)
+        TABLE(table, records)
+    }
+}
+
+USERS(users,Users)
+CLIENT(client)
+
+users -> client
+client -> route53
+client -> cloudfront
+cloudfront -> api
+
+api -> lambda
+lambda -> web_bucket
+lambda -> table
+
+web_bucket .> log_bucket
+
+route53 .[hidden]. cloudfront
+table .[hidden]. web_bucket
+
+@enduml

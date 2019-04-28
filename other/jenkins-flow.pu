@@ -1,0 +1,49 @@
+@startuml
+
+!define AWSPUML https://raw.githubusercontent.com/milo-minderbinder/AWS-PlantUML/release/18-2-22/dist
+!includeurl AWSPUML/common.puml
+!includeurl AWSPUML/General/client/client.puml
+!includeurl AWSPUML/General/user/user.puml
+!includeurl AWSPUML/Storage/AmazonS3/AmazonS3.puml
+
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.0.0
+!includeurl ICONURL/common.puml
+!includeurl ICONURL/font-awesome/gears.puml
+!includeurl ICONURL/font-awesome-5/docker.puml
+!includeurl ICONURL/font-awesome-5/github.puml
+!includeurl ICONURL/font-awesome-5/jenkins.puml
+
+USER(user, Developper) #White
+CLIENT(client) #White
+
+FA5_GITHUB(github, GitHub, node) #White
+FA_GEARS(circleci, CircleCI, node) #White
+
+AMAZONS3(s3, Module Bucket)
+
+FA5_JENKINS(jenkins, Jenkins, node) #White {
+    FA5_DOCKER(docker,Docker\nContainer,node) #White
+    artifact "Docker image" as image #White
+    [Dockerfile] as dockerfile #White
+    folder workspace as workspace #White
+    agent "Jenkins job" as job #White
+}
+
+user -> client
+client -> github : push
+github -> circleci
+circleci -> s3 : upload\nmodule
+
+job -- workspace
+
+s3 <. job
+s3 -> workspace : download\nmodule
+workspace -> image : COPY\nmodule
+dockerfile -> image : docker\nbuild
+
+image -> docker : docker\nrun
+
+dockerfile .[hidden]. image
+workspace .[hidden]. image
+
+@enduml
