@@ -8,11 +8,12 @@ YEAR = 2019
 
 TYPICAL_TEAMS_NUM = 4
 
-TRADE_SAMPLE_YEARS = 3
+TRADE_SAMPLE_YEARS = 5
 FOREIGN_SAMPLE_YEARS = 5
-DRAFT_SAMPLE_YEARS = 2
+DRAFT_AUTO_SAMPLE_YEARS = 2
+DRAFT_MANUAL_SAMPLE_YEARS = 3
 FA_SAMPLE_YEARS = 10
-UNREGISTERED_SAMPLE_YEARS = 3
+UNREGISTERED_SAMPLE_YEARS = 5
 
 FA_MULTIPLE_THRESHOLD = 0.7
 FA_SINGLE_THRESHOLD = 0.2
@@ -89,8 +90,9 @@ def ___chage_typical_teams_num(cutted_tuple_list):
             break
         lead_num -= 1
     while 0 < follow_num:
-        if cutted_tuple_list[number_of_teams - follow_num][
-                1] != cutted_tuple_list[number_of_teams - follow_num - 1][1]:
+        if cutted_tuple_list[number_of_teams -
+                             follow_num][1] != cutted_tuple_list[
+                                 number_of_teams - follow_num - 1][1]:
             break
         follow_num -= 1
     return lead_num, follow_num
@@ -102,7 +104,7 @@ def ___ignore_no_data(sorted_tuple_list):
 
 def __sort_team_dic(team_dic):
     sorted_tuple_list = sorted(team_dic.items(), key=lambda x: -x[1])
-    print(f"  {sorted_tuple_list}\n")
+    print(f'{sorted_tuple_list}\n')
     cutted_tuple_list = ___ignore_no_data(sorted_tuple_list)
     number_of_teams = len(cutted_tuple_list)
     lead_num, follow_num = ___chage_typical_teams_num(cutted_tuple_list)
@@ -132,32 +134,41 @@ def __update_result(result, update_items, leader, follower):
 def _trade_dic():
     team_dic = __create_team_dic(0)
     for year in range(YEAR - TRADE_SAMPLE_YEARS, YEAR + 1):
-        url = f"http://npb.jp/announcement/{year}/pn_traded.html"
+        url = f'http://npb.jp/announcement/{year}/pn_traded.html'
 
         res = requests.get(url)
         res.raise_for_status()
-        soup = bs4.BeautifulSoup(res.content, "html.parser")
-        tables = soup.find_all(class_="table_normal_noborder")
+        soup = bs4.BeautifulSoup(res.content, 'html.parser')
+        tables = soup.find_all(class_='table_normal_noborder')
+
+        team_two_ago = ''
+        team_one_ago = ''
 
         for table in tables:
-            if (table.find(class_="note")):
+            if (table.find(class_='note')):
                 continue
-            team_tds = table.find_all(class_="trteam")
+            team_tds = table.find_all(class_='trteam')
             for team_td in team_tds:
-                team_dic[__conv_team_notate(team_td.text)] += 1
+                team_text = __conv_team_notate(team_td.text)
+                if team_text == '〃': 
+                    team_text = team_two_ago
+                team_dic[team_text] += 1
+                team_two_ago = team_one_ago
+                team_one_ago = team_text
+
     return team_dic
 
 
 def trade(result):
     team_dic = _trade_dic()
-    print("trade:  ")
+    print('trade:  ')
     leader, follower = __sort_team_dic(team_dic)
     update_items = ["トレード", "頻度", "積極的", "消極的"]
     return __update_result(result, update_items, leader, follower)
 
 
 def _foreign_dic():
-    f = open("../other/foreign_player.json", 'r')
+    f = open('../other/foreign_player.json', 'r')
     foreign_dic = json.load(f)
 
     num_of_people_dic = __create_team_dic(0)
@@ -167,7 +178,7 @@ def _foreign_dic():
             foreign_list = foreign_dic[str(year)][team]
             for foreign in foreign_list:
                 num_of_people_dic[team] += 1
-                age_dic[team] += year - foreign["Born"]
+                age_dic[team] += year - foreign['Born']
     for team in TEAMS:
         if not num_of_people_dic[team]:
             age_dic[team] = IGNORE
@@ -178,7 +189,7 @@ def _foreign_dic():
 
 def foreign(result):
     num_of_people_dic, age_dic = _foreign_dic()
-    print("foreign_player: ")
+    print('foreign_player: ')
     num_leader, num_follower = __sort_team_dic(num_of_people_dic)
     num_update_items = ["新外国人獲得", "頻度", "積極的", "消極的"]
     result = __update_result(result, num_update_items, num_leader,
@@ -188,22 +199,20 @@ def foreign(result):
     return __update_result(result, age_update_items, age_leader, age_follower)
 
 
-def _draft_dic():
-    num_of_people_dic = __create_team_dic(0)
-    age_dic = __create_team_dic(0)
+def __draft_auto_dic(num_of_people_dic, age_dic):
     YY = YEAR % 1000
-    for year in range(YY - DRAFT_SAMPLE_YEARS, YY):
-        url = f"https://www.sanspo.com/baseball/draft/{year}/draft_table.html"
+    for year in range(YY - DRAFT_AUTO_SAMPLE_YEARS, YY):
+        url = f'https://www.sanspo.com/baseball/draft/{year}/draft_table.html'
 
         res = requests.get(url)
         res.raise_for_status()
-        soup = bs4.BeautifulSoup(res.content, "html.parser")
-        trs = soup.find_all("tr")
-        team_pointer = ""
+        soup = bs4.BeautifulSoup(res.content, 'html.parser')
+        trs = soup.find_all('tr')
+        team_pointer = ''
         for tr in trs:
-            tds = tr.find_all("td")
+            tds = tr.find_all('td')
             if len(tds) < 5: continue
-            td_top_text = __conv_team_notate(tds[0].text.replace("\u3000", ""))
+            td_top_text = __conv_team_notate(tds[0].text.replace('\u3000', ''))
             index_of_age_content = 4
             if td_top_text in TEAMS:
                 team_pointer = td_top_text
@@ -212,6 +221,28 @@ def _draft_dic():
             age = int(tds[index_of_age_content].text)
             if not 16 < age < 45: raise BaseException()
             age_dic[team_pointer] += age
+    return num_of_people_dic, age_dic
+
+
+def __draft_manual_dic(num_of_people_dic, age_dic):
+    f = open('../other/draft_player.json', 'r')
+    draft_dic = json.load(f)
+
+    for year in range(
+            YEAR - DRAFT_MANUAL_SAMPLE_YEARS - DRAFT_AUTO_SAMPLE_YEARS,
+            YEAR - DRAFT_AUTO_SAMPLE_YEARS):
+        for team in TEAMS:
+            num_of_people_dic[team] += len(draft_dic[str(year)][team])
+            age_dic[team] += sum(draft_dic[str(year)][team])
+    return num_of_people_dic, age_dic
+
+
+def _draft_dic():
+    num_of_people_dic = __create_team_dic(0)
+    age_dic = __create_team_dic(0)
+
+    num_of_people_dic, age_dic = __draft_auto_dic(num_of_people_dic, age_dic)
+    num_of_people_dic, age_dic = __draft_manual_dic(num_of_people_dic, age_dic)
     for team in TEAMS:
         if not num_of_people_dic[team]:
             age_dic[team] = IGNORE
@@ -222,14 +253,14 @@ def _draft_dic():
 
 def draft(result):
     team_dic = _draft_dic()
-    print("draft: ")
+    print('draft: ')
     leader, follower = __sort_team_dic(team_dic)
     update_items = ["ドラフト", "獲得方針", "即戦力重視", "将来性重視"]
     return __update_result(result, update_items, leader, follower)
 
 
 def _free_agent_dic():
-    f = open("../other/free_agent_player.json", 'r')
+    f = open('../other/free_agent_player.json', 'r')
     fa_dic = json.load(f)
 
     num_of_people_dic = __create_team_dic(0)
@@ -238,10 +269,10 @@ def _free_agent_dic():
     for year in range(YEAR - FA_SAMPLE_YEARS, YEAR):
         print(year)
         for dic in fa_dic[str(year)].values():
-            team = dic["Team"]
+            team = dic['Team']
             num_of_people_dic[team] += 1
-            age_dic[team] += year - dic["Born"]
-            payment_dic[team] += dic["Payment"]
+            age_dic[team] += year - dic['Born']
+            payment_dic[team] += dic['Payment']
     for team in TEAMS:
         if not num_of_people_dic[team]:
             age_dic[team] = IGNORE
@@ -257,20 +288,23 @@ def free_agent(result):
     num_of_people_dic = __create_team_dic(0)
     age_dic = __create_team_dic(0)
     num_of_people_dic, age_dic, payment_dic = _free_agent_dic()
-    print("free_agent_player: ")
+    print('free_agent_player: ')
     for k, v in num_of_people_dic.items():
         if v / 10 > FA_MULTIPLE_THRESHOLD:
             result[k]["FA交渉"]["人数"] = "複数人"
         elif v / 10 < FA_SINGLE_THRESHOLD:
             result[k]["FA交渉"]["人数"] = "一人"
+    print('- num of players: ')    
     num_leader, num_follower = __sort_team_dic(num_of_people_dic)
     num_update_items = ["FA交渉", "他チームの選手に対して", "積極的", "消極的"]
     result = __update_result(result, num_update_items, num_leader,
                              num_follower)
+    print('- age of players: ')        
     age_leader, age_follower = __sort_team_dic(age_dic)
     age_update_items = ["FA交渉", "獲得方針", "経験重視", "若さ重視"]
     result = __update_result(result, age_update_items, age_leader,
                              age_follower)
+    print('- salary of players: ')        
     pay_leader, pay_follower = __sort_team_dic(payment_dic)
     pay_update_items = ["FA交渉", "獲得方針", "目玉選手重視", "単独交渉重視"]
     return __update_result(result, pay_update_items, pay_leader, pay_follower)
@@ -283,7 +317,7 @@ def posting(result):
 
 
 def _returned_dic():
-    f = open("../other/returned_player.json", 'r')
+    f = open('../other/returned_player.json', 'r')
     returned_dic = json.load(f)
 
     num_of_people_dic = __create_team_dic(0)
@@ -294,14 +328,14 @@ def _returned_dic():
 
 def returned(result):
     team_dic = _returned_dic()
-    print("returned_player: ")
+    print('returned_player: ')
     leader, follower = __sort_team_dic(team_dic)
     update_items = ["ポスティング", "獲得方針", "積極的", "消極的"]
     return __update_result(result, update_items, leader, follower)
 
 
 def _unregistered_dic():
-    f = open("../other/unregistered_player.json", 'r')
+    f = open('../other/unregistered_player.json', 'r')
     unregistered_dic = json.load(f)
 
     num_of_people_dic = __create_team_dic(0)
@@ -311,7 +345,7 @@ def _unregistered_dic():
             unregistered_list = unregistered_dic[str(year)][team]
             for unregistered in unregistered_list:
                 num_of_people_dic[team] += 1
-                age_dic[team] += year - unregistered["Born"]
+                age_dic[team] += year - unregistered['Born']
     for team in TEAMS:
         if not num_of_people_dic[team]:
             age_dic[team] = IGNORE
@@ -322,7 +356,7 @@ def _unregistered_dic():
 
 def unregistered(result):
     age_dic = _unregistered_dic()
-    print("unregistered_player: ")
+    print('unregistered_player: ')
     leader, follower = __sort_team_dic(age_dic)
     update_items = ["自由契約選手獲得", "獲得方針", "経験重視", "のびしろ重視"]
     return __update_result(result, update_items, leader, follower)
@@ -373,7 +407,7 @@ def _create_markdown_list(result):
 
 def write_markdown_table(result):
     markdown_list = _create_markdown_list(result)
-    with open("./addition_table.md", "w") as f:
+    with open('./addition_table.md', 'w') as f:
         for md in markdown_list:
             f.write(md)
 
