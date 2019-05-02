@@ -267,7 +267,6 @@ def _free_agent_dic():
     age_dic = __create_team_dic(0)
     payment_dic = __create_team_dic(0)
     for year in range(YEAR - FA_SAMPLE_YEARS, YEAR):
-        print(year)
         for dic in fa_dic[str(year)].values():
             team = dic['Team']
             num_of_people_dic[team] += 1
