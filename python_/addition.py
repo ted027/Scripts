@@ -45,8 +45,8 @@ thought = {
         "人数": "おまかせ"
     },
     "ポスティング": {
-        "承認": "おまかせ",
-        "獲得方針": "おまかせ"
+        "承認方針": "おまかせ",
+        "交渉方針": "おまかせ"
     },
     "契約更改": {
         "解雇方針": "能力重視"
@@ -292,7 +292,7 @@ def free_agent(result):
         if v / 10 > FA_MULTIPLE_THRESHOLD:
             result[k]["FA交渉"]["人数"] = "複数人"
         elif v / 10 < FA_SINGLE_THRESHOLD:
-            result[k]["FA交渉"]["人数"] = "一人"
+            result[k]["FA交渉"]["人数"] = "１人"
     print('- num of players: ')    
     num_leader, num_follower = __sort_team_dic(num_of_people_dic)
     num_update_items = ["FA交渉", "他チームの選手に対して", "積極的", "消極的"]
@@ -311,7 +311,7 @@ def free_agent(result):
 
 def posting(result):
     for team in NOT_POSTING_TEAMS:
-        result[team]["ポスティング"]["承認"] = "承認しない"
+        result[team]["ポスティング"]["承認方針"] = "承認しない"
     return result
 
 
@@ -329,7 +329,7 @@ def returned(result):
     team_dic = _returned_dic()
     print('returned_player: ')
     leader, follower = __sort_team_dic(team_dic)
-    update_items = ["ポスティング", "獲得方針", "積極的", "消極的"]
+    update_items = ["ポスティング", "交渉方針", "積極的", "消極的"]
     return __update_result(result, update_items, leader, follower)
 
 
@@ -387,10 +387,10 @@ def _create_markdown_list(result):
     - 人数
         - {result[team]["FA交渉"]["人数"]}
 - ポスティング
-    - 承認
-        - {result[team]["ポスティング"]["承認"]}
-    - 獲得方針
-        - {result[team]["ポスティング"]["獲得方針"]}
+    - 承認方針
+        - {result[team]["ポスティング"]["承認方針"]}
+    - 交渉方針
+        - {result[team]["ポスティング"]["交渉方針"]}
 - 契約更改
     - 解雇方針
         - 能力重視
