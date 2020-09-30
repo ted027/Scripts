@@ -4,7 +4,7 @@ import bs4
 import json
 from pprint import pprint
 
-YEAR = 2019
+YEAR = 2020
 
 TYPICAL_TEAMS_NUM = 4
 
