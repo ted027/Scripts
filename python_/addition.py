@@ -4,14 +4,14 @@ import bs4
 import json
 from pprint import pprint
 
-YEAR = 2019
+YEAR = 2020
 
 TYPICAL_TEAMS_NUM = 4
 
 TRADE_SAMPLE_YEARS = 5
 FOREIGN_SAMPLE_YEARS = 5
-DRAFT_AUTO_SAMPLE_YEARS = 2
-DRAFT_MANUAL_SAMPLE_YEARS = 3
+DRAFT_AUTO_SAMPLE_YEARS = 3
+DRAFT_MANUAL_SAMPLE_YEARS = 2
 FA_SAMPLE_YEARS = 10
 UNREGISTERED_SAMPLE_YEARS = 5
 
@@ -21,8 +21,8 @@ FA_SINGLE_THRESHOLD = 0.2
 IGNORE = -1
 
 TEAMS = [
-    "広島", "ヤクルト", "読売", "ＤｅＮＡ", "中日", "阪神", "西武", "ソフトバンク", "日本ハム", "オリックス",
-    "ロッテ", "楽天"
+    "読売", "ＤｅＮＡ", "阪神", "広島", "中日", "ヤクルト", "西武", "ソフトバンク", "楽天", "ロッテ",
+    "日本ハム", "オリックス"
 ]
 
 NOT_POSTING_TEAMS = ["読売", "ソフトバンク"]
@@ -150,7 +150,7 @@ def _trade_dic():
             team_tds = table.find_all(class_='trteam')
             for team_td in team_tds:
                 team_text = __conv_team_notate(team_td.text)
-                if team_text == '〃': 
+                if team_text == '〃':
                     team_text = team_two_ago
                 team_dic[team_text] += 1
                 team_two_ago = team_one_ago
@@ -293,17 +293,17 @@ def free_agent(result):
             result[k]["FA交渉"]["人数"] = "複数人"
         elif v / 10 < FA_SINGLE_THRESHOLD:
             result[k]["FA交渉"]["人数"] = "１人"
-    print('- num of players: ')    
+    print('- num of players: ')
     num_leader, num_follower = __sort_team_dic(num_of_people_dic)
     num_update_items = ["FA交渉", "他チームの選手に対して", "積極的", "消極的"]
     result = __update_result(result, num_update_items, num_leader,
                              num_follower)
-    print('- age of players: ')        
+    print('- age of players: ')
     age_leader, age_follower = __sort_team_dic(age_dic)
     age_update_items = ["FA交渉", "獲得方針", "経験重視", "若さ重視"]
     result = __update_result(result, age_update_items, age_leader,
                              age_follower)
-    print('- salary of players: ')        
+    print('- salary of players: ')
     pay_leader, pay_follower = __sort_team_dic(payment_dic)
     pay_update_items = ["FA交渉", "獲得方針", "目玉選手重視", "単独交渉重視"]
     return __update_result(result, pay_update_items, pay_leader, pay_follower)
@@ -344,7 +344,9 @@ def _unregistered_dic():
             unregistered_list = unregistered_dic[str(year)][team]
             for unregistered in unregistered_list:
                 num_of_people_dic[team] += 1
-                age_dic[team] += year - unregistered['Born']
+                age = year - unregistered.get('Born') if unregistered.get(
+                    'Born') else unregistered.get('Age')
+                age_dic[team] += age
     for team in TEAMS:
         if not num_of_people_dic[team]:
             age_dic[team] = IGNORE
@@ -366,37 +368,38 @@ def _create_markdown_list(result):
     for team in TEAMS:
         part_of_markdown = f'''
 #### {team}
+
 - トレード
-    - 頻度
-        - {result[team]["トレード"]["頻度"]}
+  - 頻度
+    - {result[team]["トレード"]["頻度"]}
 - 新外国人獲得
-    - 頻度
-        - {result[team]["新外国人獲得"]["頻度"]}
-    - 獲得方針
-        - {result[team]["新外国人獲得"]["獲得方針"]}
+  - 頻度
+    - {result[team]["新外国人獲得"]["頻度"]}
+  - 獲得方針
+    - {result[team]["新外国人獲得"]["獲得方針"]}
 - ドラフト
-    - 獲得方針
-        - {result[team]["ドラフト"]["獲得方針"]}
+  - 獲得方針
+    - {result[team]["ドラフト"]["獲得方針"]}
 - FA交渉
-    - 自チームの選手に対して
-        - 残留交渉する
-    - 他チームの選手に対して
-        - {result[team]["FA交渉"]["他チームの選手に対して"]}
-    - 獲得方針
-        - {result[team]["FA交渉"]["獲得方針"]}
-    - 人数
-        - {result[team]["FA交渉"]["人数"]}
+  - 自チームの選手に対して
+    - 残留交渉する
+  - 他チームの選手に対して
+    - {result[team]["FA交渉"]["他チームの選手に対して"]}
+  - 獲得方針
+    - {result[team]["FA交渉"]["獲得方針"]}
+  - 人数
+    - {result[team]["FA交渉"]["人数"]}
 - ポスティング
-    - 承認方針
-        - {result[team]["ポスティング"]["承認方針"]}
-    - 交渉方針
-        - {result[team]["ポスティング"]["交渉方針"]}
+  - 承認方針
+    - {result[team]["ポスティング"]["承認方針"]}
+  - 交渉方針
+    - {result[team]["ポスティング"]["交渉方針"]}
 - 契約更改
-    - 解雇方針
-        - 能力重視
+  - 解雇方針
+    - 能力重視
 - 自由契約選手獲得
-    - 獲得方針
-        - {result[team]["自由契約選手獲得"]["獲得方針"]}
+  - 獲得方針
+    - {result[team]["自由契約選手獲得"]["獲得方針"]}
 
 ---
 '''
