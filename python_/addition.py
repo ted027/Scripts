@@ -10,8 +10,8 @@ TYPICAL_TEAMS_NUM = 4
 
 TRADE_SAMPLE_YEARS = 5
 FOREIGN_SAMPLE_YEARS = 5
-DRAFT_AUTO_SAMPLE_YEARS = 2
-DRAFT_MANUAL_SAMPLE_YEARS = 3
+DRAFT_AUTO_SAMPLE_YEARS = 3
+DRAFT_MANUAL_SAMPLE_YEARS = 2
 FA_SAMPLE_YEARS = 10
 UNREGISTERED_SAMPLE_YEARS = 5
 
@@ -344,7 +344,9 @@ def _unregistered_dic():
             unregistered_list = unregistered_dic[str(year)][team]
             for unregistered in unregistered_list:
                 num_of_people_dic[team] += 1
-                age_dic[team] += year - unregistered['Born']
+                age = year - unregistered.get('Born') if unregistered.get('Born') else unregistered.get('Age')
+                print(age)
+                age_dic[team] += age
     for team in TEAMS:
         if not num_of_people_dic[team]:
             age_dic[team] = IGNORE
