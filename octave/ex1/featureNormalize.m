@@ -26,13 +26,23 @@ sigma = zeros(1, size(X, 2));
 % Hint: You might find the 'mean' and 'std' functions useful.
 %       
 
+feature1 = X(:,1);
+feature2 = X(:,2);
 
+mean1 = mean(feature1);
+mean2 = mean(feature2);
 
+mu = [mean1 mean2];
+mu = [(feature1 - mean1) (feature2 - mean2)];
 
+std1 = std(feature1);
+std2 = std(feature2);
+sigma = [std1 std2];
 
+f1_norm = (feature1 - mean1) / std1;
+f2_norm = (feature2 - mean2) / std2;
 
-
-
+X_norm = [f1_norm f2_norm];
 
 % ============================================================
 
