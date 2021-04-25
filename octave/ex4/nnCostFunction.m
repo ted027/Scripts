@@ -63,10 +63,12 @@ Theta2_grad = zeros(size(Theta2));
 %
 
 for i = 1:m
-    Xi = [1 X(i,:)]';
-    h_hidden = sigmoid(Theta1 * Xi);
-    h_hidden = [1 h_hidden']';
-    h = sigmoid(Theta2 * h_hidden);
+    a1 = [1 X(i,:)]';
+    z2 = Theta1 * a1;
+    a2 = sigmoid(z2);
+    a2 = [1 a2']';
+    z3 = Theta2 * a2;
+    h = sigmoid(z3);
 
     y_vec = zeros(num_labels, 1);
     y_vec(y(i)) = 1;
@@ -75,16 +77,29 @@ for i = 1:m
     cost_neg = sum(-(1 - y_vec') * log(1 - h));
     cost = cost_pos + cost_neg;
     J = J + cost;
+
+    delta3 = h - y_vec;
+    Theta2_grad = Theta2_grad + delta3 * a2';
+
+    delta2 = (Theta2' * delta3)(2:end) .* sigmoidGradient(z2);
+    Theta1_grad = Theta1_grad + delta2 * a1';
 end
 
 J = J / m;
 
-T1 = Theta1;
-T1(:, 1) = [];
-T2 = Theta2;
-T2(:, 1) = [];
-Jreg = lambda * (sum(sum(T1() .^ 2)) + sum(sum(T2 .^ 2))) / (2 * m)
+Theta_sum = sum(sum(Theta1(:,2:end) .^ 2)) + sum(sum(Theta2(:,2:end) .^ 2));
+Jreg = lambda * Theta_sum / (2 * m);
 J = J + Jreg;
+
+Theta1_grad = Theta1_grad / m;
+Theta2_grad = Theta2_grad / m;
+
+T1_grad_reg = lambda / m * Theta1;
+T1_grad_reg(:, 1) = zeros(size(Theta1, 1), 1);
+Theta1_grad = Theta1_grad + T1_grad_reg;
+T2_grad_reg = lambda / m * Theta2;
+T2_grad_reg(:, 1) = zeros(size(Theta2, 1), 1);
+Theta2_grad = Theta2_grad + T2_grad_reg;
 
 % -------------------------------------------------------------
 
