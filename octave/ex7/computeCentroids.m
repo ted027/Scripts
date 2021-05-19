@@ -26,12 +26,15 @@ centroids = zeros(K, n);
 % Note: You can use a for-loop over the centroids to compute this.
 %
 
+members = zeros(K, 1);
+for i = 1:m
+    x = X(i,:);
+    cluster = idx(i);
+    centroids(cluster,:) += x;
+    members(cluster) += 1;
+end
 
-
-
-
-
-
+centroids = centroids ./ members;
 
 % =============================================================
 

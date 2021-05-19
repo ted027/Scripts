@@ -21,11 +21,14 @@ idx = zeros(size(X,1), 1);
 % Note: You can use a for-loop over the examples to compute this.
 %
 
-
-
-
-
-
+for i = 1:size(X,1)
+    x = X(i, :);
+    x_rep = repmat(x,K,1);
+    sub2 = (x_rep - centroids) .^ 2;
+    dis2 = sum(sub2, 2);
+    [min_dis2, cluster] = min(dis2);
+    idx(i) = cluster;
+end
 
 % =============================================================
 
