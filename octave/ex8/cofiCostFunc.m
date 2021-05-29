@@ -46,8 +46,18 @@ Sub2 = Sub .^ 2;
 
 J = sum(sum(Sub2)) / 2;
 
+reg_x = sum(sum(X .^ 2)) * lambda / 2;
+reg_theta = sum(sum(Theta .^ 2)) * lambda / 2;
+J = J + reg_theta + reg_x;
+
 X_grad = Sub * Theta;
 Theta_grad = Sub' * X;
+
+x_grad_reg = lambda * X;
+theta_grad_reg = lambda * Theta;
+
+X_grad = X_grad + x_grad_reg;
+Theta_grad = Theta_grad + theta_grad_reg;
 
 % =============================================================
 
